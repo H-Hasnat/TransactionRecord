@@ -29,7 +29,10 @@
     </div>
 
     <div class="row justify-content-between mb-3">
+        <h4>Total In:  <span id="totalin" class="fw-bold"> 0</span>(+) taka</h4>
+        <h4>Total Out:  <span id="totalout" class="fw-bold">0</span>(-) taka</h4>
         <h4>Total Amount: <span id="totalamount" class="fw-bold">0</span> taka</h4>
+
     </div>
 
     <div class="text-end">
@@ -61,7 +64,7 @@
 </div>
 
 <script>
-    document.getElementById('totalamount').innerHTML = 0;
+
 
     async function historyList() {
         let start_date = document.getElementById("start_date").value;
@@ -99,6 +102,8 @@
 
                     // Update total amount
                     document.getElementById('totalamount').innerHTML = res.data['total_amount'];
+                    document.getElementById('totalin').innerHTML = res.data['total_in'];
+                    document.getElementById('totalout').innerHTML = res.data['total_out'];
 
 
                     // Reinitialize DataTable
@@ -158,6 +163,8 @@ $("#printTable").on("click", async function () {
             <h2 class="text-center">Transaction History</h2>
             <h4>Start Date: ${startDate}</h4>
             <h4>End Date: ${endDate}</h4>
+            <h4>Total In (+) : ${document.getElementById('totalin').innerHTML} Taka</h4>
+            <h4>Total Out (-) : ${document.getElementById('totalout').innerHTML} Taka</h4>
             <h4>Total Amount: ${document.getElementById('totalamount').innerHTML} Taka</h4>
             ${document.getElementById('tableData').outerHTML}
         </div>`;

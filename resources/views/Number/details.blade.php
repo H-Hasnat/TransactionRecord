@@ -7,7 +7,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+
+
                 <!-- Start Date and End Date Inputs -->
+
                 <div class="mb-3">
                     <label for="start-date" class="form-label">Start Date</label>
                     <input type="date" id="start-date" class="form-control">
@@ -63,9 +66,16 @@ $("#AgentNumberList").on('click', async function () {
 
         setTimeout(async function () {
             // Check if end_date is greater than start_date
-            if (start_date > end_date) {
-                alert("End Date must be greater than Start Date!");
-            } else {
+
+            if(start_date.length===0){
+                error("Start Date required")
+
+            } else if(end_date.length===0){
+                error("End Date required")
+
+            }else   if (start_date > end_date) {
+                error("End Date must be greater than Start Date!");
+            }{
                 // Send the request to the server with start and end date
                 let res = await axios.post('/agent_number_details', {
                     start_date: start_date,

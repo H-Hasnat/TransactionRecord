@@ -91,6 +91,7 @@ Route::post('/transaction_update', [TransactionDetailsController::class, 'update
 
 
 Route::post('/transaction_destroy', [TransactionDetailsController::class, 'destroy']);
+Route::post('/filter_transaction', [TransactionDetailsController::class, 'FilterTransaction']);
 
 
 

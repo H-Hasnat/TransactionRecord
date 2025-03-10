@@ -26,6 +26,9 @@
     <h2 style="text-align: center;">Transaction History</h2>
     <p><strong>Start Date:</strong> {{ $start_date }}</p>
     <p><strong>End Date:</strong> {{ $end_date }}</p>
+    <p><strong>Total In:</strong> {{ $total_in }} Taka</p>
+    <p><strong>Total Out:</strong> {{ $total_out }} Taka</p>
+
     <p><strong>Total Amount:</strong> {{ $total_amount }} Taka</p>
     <table>
         <thead>
