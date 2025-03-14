@@ -288,77 +288,6 @@ class TransactionDetailsController extends Controller
 
 
 
-//     public function FilterTransaction(Request $request){
-
-//         // ইনপুট থেকে start_date এবং end_date নেওয়া
-//     $start_date = $request->input('start_date');
-//     $end_date = $request->input('end_date');
-
-//     // সমস্ত ট্রানজেকশন নিয়ে আসা এবং রিলেশন লোড করা
-//     $all_transactions = TransactionDetails::with('number', 'payment_method')->get();
-//     // $agent_details = NumberDetails::get();
-//     // ফিল্টার করা ট্রানজেকশন এবং agent_sums তৈরি করা
-//     // $agent_sums = [];
-//     // $total_amount = 0;  // পরিমাণের যোগফল
-
-//     // foreach ($all_transactions as $transaction) {
-//         // ডেট ফিল্টার করা (start_date এবং end_date এর মধ্যে)
-//         // $transaction_date = $transaction->created_at->format('Y-m-d');
-
-//         // যদি transaction_date start_date এবং end_date এর মধ্যে থাকে
-//         // if ($transaction_date >= $start_date && $transaction_date <= $end_date) {
-
-
-//             // যদি agent_number agent_details এর মধ্যে থাকে
-//             // if ($agent_details->contains('agent_number', $transaction->number->agent_number)) {
-//             //     // যদি agent_number এর জন্য পূর্বে কোনো পরিমাণ না থাকে
-//             //     $key = $transaction->number->agent_number . '|' . $transaction->number->type['name'];
-
-
-//             //     if (!isset($agent_sums[$key])) {
-//             //         $agent_sums[$key] = [
-//             //             'amount' => 0,  // পরিমাণ
-//             //             'type' => $transaction->number->type['name'] // টাইপ
-//             //         ];
-//             //     }
-
-
-
-
-
-//             //     // পরিমাণ যোগ করা
-//             //     $agent_sums[$key]['amount'] += (float) $transaction->amount;
-
-//             //     // মোট পরিমাণ যোগ করা
-//             //     $total_amount += (float) $transaction->amount;
-//             // }
-
-//             $number_id=NumberDetails::where('account_type_id',1)->select('id')->get();
-//             $transaction=TransactionDetails::where('number_details_id',$number_id)->get();
-
-
-
-
-
-
-//         // }
-//     // }
-
-//     // ফলাফল রিটার্ন করা
-//     return response()->json([
-//        'transation'=>$number_id
-//     ]);
-// }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -375,25 +304,37 @@ class TransactionDetailsController extends Controller
 //     $number_ids = NumberDetails::where('account_type_id', $account_type)
 //                     ->pluck('id');
 
-//     // TransactionDetails ফিল্টার করে আনা
-//     $transactions = TransactionDetails::with('number.type', 'payment_method')
-//                     ->whereIn('number_details_id', $number_ids)
-//                     ->whereBetween('created_at', [$start_date, $end_date])
-//                     ->get();
+//     // Query বিল্ড করা
+//     $query = TransactionDetails::with('number.type1', 'payment_method')
+//                     ->whereIn('number_details_id', $number_ids);
 
-//     // মোট পরিমাণ যোগ করা
+//     // তারিখ অনুযায়ী ফিল্টার করা
+//     if ($start_date === $end_date) {
+//         // যদি start_date এবং end_date একই হয়, তাহলে whereDate ব্যবহার করা হবে
+//         $query->whereDate('created_at', $start_date);
+//     } else {
+//         // ভিন্ন হলে whereBetween ব্যবহার করা হবে
+//         $query->whereBetween('created_at', [$start_date, $end_date]);
+//     }
+
+//     // ফিল্টার করা ট্রান্সাকশন সংগ্রহ
+//     $transactions = $query->get();
+
+//     // মোট পরিমাণ হিসাব করা
 //     $total_amount = $transactions->sum('amount');
 //     $total_in = $transactions->where('amount', '>', 0)->sum('amount');
-//     $total_out = $transactions->where('amount', '<', 0)->sum('amount');
+//     $total_out = abs($transactions->where('amount', '<', 0)->sum('amount'));
 
 //     // রেসপন্স রিটার্ন করা
 //     return response()->json([
 //         'transactions' => $transactions,
 //         'total_amount' => $total_amount,
 //         'total_in' => $total_in,
-//         'total_out' => abs($total_out) // নেগেটিভ মান পজিটিভ করে নেওয়া
+//         'total_out' => $total_out
 //     ]);
 // }
+
+
 
 public function FilterTransaction(Request $request)
 {
@@ -406,18 +347,14 @@ public function FilterTransaction(Request $request)
     $number_ids = NumberDetails::where('account_type_id', $account_type)
                     ->pluck('id');
 
-    // Query বিল্ড করা
-    $query = TransactionDetails::with('number.type', 'payment_method')
-                    ->whereIn('number_details_id', $number_ids);
+    // Start Date ও End Date কে দিনব্যাপী কভার করার জন্য সময় সেট করা
+    $start_date_time = Carbon::parse($start_date)->startOfDay(); // 00:00:00
+    $end_date_time = Carbon::parse($end_date)->endOfDay(); // 23:59:59
 
-    // তারিখ অনুযায়ী ফিল্টার করা
-    if ($start_date === $end_date) {
-        // যদি start_date এবং end_date একই হয়, তাহলে whereDate ব্যবহার করা হবে
-        $query->whereDate('created_at', $start_date);
-    } else {
-        // ভিন্ন হলে whereBetween ব্যবহার করা হবে
-        $query->whereBetween('created_at', [$start_date, $end_date]);
-    }
+    // Query বিল্ড করা
+    $query = TransactionDetails::with('number.type1', 'payment_method')
+                ->whereIn('number_details_id', $number_ids)
+                ->whereBetween('created_at', [$start_date_time, $end_date_time]);
 
     // ফিল্টার করা ট্রান্সাকশন সংগ্রহ
     $transactions = $query->get();
@@ -435,9 +372,6 @@ public function FilterTransaction(Request $request)
         'total_out' => $total_out
     ]);
 }
-
-
-
 
 
 
